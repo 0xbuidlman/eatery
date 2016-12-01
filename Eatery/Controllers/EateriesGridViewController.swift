@@ -15,6 +15,7 @@ let kCollectionViewGutterWidth: CGFloat = 10
 class EateriesGridViewController: UIViewController, MenuButtonsDelegate, CLLocationManagerDelegate {
 
     var collectionView: UICollectionView!
+    var cellSize = false //should store size as NSUserDefault
     fileprivate let eateryNavigationAnimator = EateryNavigationAnimator()
     
     var eateries: [Eatery] = []
@@ -53,7 +54,7 @@ class EateriesGridViewController: UIViewController, MenuButtonsDelegate, CLLocat
         navigationController?.delegate = self
 
         setupBars()
-        setupCollectionView()
+        setupCollectionView(cell: cellSize)
         
         // Check for 3D Touch availability
         if traitCollection.forceTouchCapability == .available {
@@ -63,6 +64,11 @@ class EateriesGridViewController: UIViewController, MenuButtonsDelegate, CLLocat
         let mapButton = UIBarButtonItem(title: "Map", style: .plain, target: self, action: #selector(mapButtonPressed))
         mapButton.setTitleTextAttributes([NSFontAttributeName: UIFont.systemFont(ofSize: 14.0), NSForegroundColorAttributeName: UIColor.white], for: UIControlState())
         navigationItem.rightBarButtonItem = mapButton
+       
+        //BUTTON SHOULD BE IMAGE gridIcon when in table mode and tableIcon when in grid mode
+        let cellButton = UIBarButtonItem(title: "Cell", style: .plain, target: self, action: #selector(cellButtonPressed))
+        cellButton.setTitleTextAttributes([NSFontAttributeName: UIFont.systemFont(ofSize: 14.0), NSForegroundColorAttributeName: UIColor.white], for: UIControlState())
+        navigationItem.leftBarButtonItem = cellButton
         
         loadData(force: false, completion: nil)
         
@@ -81,6 +87,12 @@ class EateriesGridViewController: UIViewController, MenuButtonsDelegate, CLLocat
         navigationController?.pushViewController(mapViewController, animated: true)
     }
     
+    @objc private func cellButtonPressed() {
+        cellSize = !cellSize
+        collectionView.removeFromSuperview()
+        setupCollectionView(cell: cellSize)
+    }
+    
     func setupBars() {
         searchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44.0))
         searchBar.delegate = self
@@ -94,8 +106,8 @@ class EateriesGridViewController: UIViewController, MenuButtonsDelegate, CLLocat
         view.addSubview(filterBar)
     }
     
-    func setupCollectionView() {
-        let layout = EateriesCollectionViewTableLayout()
+    func setupCollectionView(cell: Bool) {
+        let layout = cellSize ? EateriesCollectionViewGridLayout() : EateriesCollectionViewTableLayout()
         collectionView = UICollectionView(frame: CGRect(x: 0.0, y: 0.0, width: view.frame.width, height: view.frame.height - (navigationController?.navigationBar.frame.maxY ?? 0.0) - (tabBarController?.tabBar.frame.height ?? 0.0)), collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
