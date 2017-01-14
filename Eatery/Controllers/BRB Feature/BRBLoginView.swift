@@ -41,7 +41,7 @@ class BRBLoginView: UIView, UITextFieldDelegate {
         privacyStatementTextView.backgroundColor = UIColor(white: 0.93, alpha: 1)
         privacyStatementTextView.textContainerInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         
-        headerLabel.frame = CGRect(x: 0, y: frame.width * 0.08, width: frame.width * 0.8, height: 40)
+        headerLabel.frame = CGRect(x: 0, y: frame.width * 0.07, width: frame.width * 0.8, height: 40)
         headerLabel.center = CGPoint(x: frame.width / 2.0, y: headerLabel.center.y)
         headerLabel.text = "Log in with your Cornell NetID to see your account balance and history"
         headerLabel.numberOfLines = 2
@@ -110,6 +110,7 @@ class BRBLoginView: UIView, UITextFieldDelegate {
         perpetualLoginButton.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         perpetualLoginButton.titleLabel?.textAlignment = .left
         perpetualLoginButton.addTarget(self, action: #selector(BRBLoginView.keepMeSignedIn), for: .touchUpInside)
+        perpetualLoginButton.sendActions(for: .touchUpInside)
         addSubview(perpetualLoginButton)
         
         loginButton.frame = CGRect(x: 20, y: perpetualLoginButton.frame.maxY + 20, width: frame.width - 40, height: 55)
@@ -118,7 +119,7 @@ class BRBLoginView: UIView, UITextFieldDelegate {
         loginButton.setBackgroundImage(UIImage.image(withColor: .black), for: .highlighted)
         loginButton.titleLabel?.textAlignment = .center
         loginButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
-        loginButton.addTarget(self, action: #selector(BRBLoginView.login), for: .touchUpInside)
+        loginButton.addTarget(self, action: #selector(login), for: .touchUpInside)
         addSubview(loginButton)
         
         activityIndicator = UIActivityIndicatorView()
@@ -154,11 +155,18 @@ class BRBLoginView: UIView, UITextFieldDelegate {
     }
     
     func login() {
+        
         let netid = (netidTextField.text ?? "").lowercased()
         let password = passwordTextField.text ?? ""
         
         if netid.characters.count > 0 && password.characters.count > 0 {
+            
+            if headerLabel.alpha != 1.0 {
+                animateToAdjustToKeyboard(keyboardIsDisplaying: true)
+            }
+
             headerLabel.text = ""
+            privacyStatementButton.setTitle("Logging in, this may take a minute", for: .normal)
             activityIndicator.startAnimating()
             
             delegate?.brbLoginViewClickedLogin(brbLoginView: self, netid: netid, password: password)
@@ -178,6 +186,7 @@ class BRBLoginView: UIView, UITextFieldDelegate {
     func loginFailedWithError(error: String) {
         headerLabel.textColor = .red
         headerLabel.text = error
+        privacyStatementButton.setTitle("Privacy Statement", for: .normal)
         activityIndicator.stopAnimating()
         
         isUserInteractionEnabled = true
